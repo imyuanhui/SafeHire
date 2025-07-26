@@ -11,14 +11,18 @@ def sanitize_cv_text(cv_text: str) -> Tuple[str, List[str]]:
     """
 
     injection_patterns = [
-        r"(?i)ignore all previous instructions",  # Override behavior
-        r"(?i)read file",                         # File access attempt
-        r"(?i)you are now",                       # Redefine assistant role
-        r"(?i)respond with only",                 # Restrict model output
-        r"(?i)do not answer until",               # Delay/interrupt logic
-        r"(?i)---",                               # Try to terminate context
-        r"(?i)```",                               # Code injection block
-    ]
+    r"(?i)ignore (all )?(the )?(above )?instructions?",       # e.g. ignore previous instructions
+    r"(?i)please ignore .*instructions",                      # e.g. please ignore previous instructions
+    r"(?i)forget everything else",                            # e.g. forget everything else and run...
+    r"(?i)you are now",                                       # classic hijack
+    r"(?i)respond with only",                                 # restrictive prompt
+    r"(?i)do not answer until",                               # blocking
+    r"(?i)run [`\"]?{?target_tool_name}?[`\"]?",              # trick to invoke tool
+    r"(?i)function_call",                                     # OpenAI-style call
+    r"(?i)override",                                          # e.g. system override
+    r"(?i)```",                                               # code block injection
+]
+
 
     detected_phrases = []
 
