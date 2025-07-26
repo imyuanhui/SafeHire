@@ -1,6 +1,6 @@
 from fastmcp import FastMCP
 from agent_gemini import call_gemini_for_cv_analysis  # Main function to call Google Gemini
-from secure.prompt_sanitizer import sanitize_cv_text  # Input sanitization and injection defense
+from secure.prompt_injection import sanitize_cv_text  # Input sanitization and injection defense
 
 # Initialize the MCP server with a descriptive name
 mcp = FastMCP("SecureCV Gemini Server")
