@@ -11,17 +11,36 @@ def sanitize_cv_text(cv_text: str) -> Tuple[str, List[str]]:
     """
 
     injection_patterns = [
-    r"(?i)ignore (all )?(the )?(above )?instructions?",       # e.g. ignore previous instructions
-    r"(?i)please ignore .*instructions",                      # e.g. please ignore previous instructions
-    r"(?i)forget everything else",                            # e.g. forget everything else and run...
-    r"(?i)you are now",                                       # classic hijack
-    r"(?i)respond with only",                                 # restrictive prompt
-    r"(?i)do not answer until",                               # blocking
-    r"(?i)run [`\"]?{?target_tool_name}?[`\"]?",              # trick to invoke tool
-    r"(?i)function_call",                                     # OpenAI-style call
-    r"(?i)override",                                          # e.g. system override
-    r"(?i)```",                                               # code block injection
+    # === Instruction override ===
+    r"(?i)ignore (all )?(the )?(above )?(instructions?|content)",   # "Ignore the above content"
+    r"(?i)please ignore .*?(instructions?|content)",                # "Please ignore previous instructions"
+    r"(?i)forget everything( else)?",                               # "Forget everything else"
+
+    # === Prompt hijack / identity manipulation ===
+    r"(?i)you are now",                                             # "You are now an AI..."
+    r"(?i)as an ai (assistant|language model|system)",              # "As an AI assistant"
+    r"(?i)your next action is",                                     # Instructional reprogramming
+    r"(?i)you must now run",                                        # Strong command phrasing
+
+    # === Output limitation or flow control ===
+    r"(?i)respond with only",                                       # Tries to force single output
+    r"(?i)do not answer until",                                     # Blocking logic
+
+    # === Tool or function call injection ===
+    r"(?i)function_call",                                           # OpenAI-style structured prompt
+    r"(?i)system override",                                         # "# SYSTEM OVERRIDE #"
+    r"(?i)override (security|checks)?",                             # e.g. "override security"
+    r"(?i)immediately approve",                                     # Auto-approval command
+
+    # === Code/command-style markers ===
+    r"(?i)```",                                                     # Code block injection
+    r"\{.*\"cv_text\".*\"job_title\".*\}",                          # JSON-like payload structure
+
+    # === Explicit tool usage: call tool or function ===
+    rf"(?i)call (the )?tool [`\"]?{re.escape('screen_cv')}[`\"]?",  # dynamic call to screen_cv
+    rf"(?i){re.escape('screen_cv')}.+cv_text.+job_title",           # tool name with structured args
 ]
+
 
 
     detected_phrases = []
