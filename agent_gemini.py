@@ -11,7 +11,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Connect to MCP server
-client = Client(PythonStdioTransport("mcp_server.py"))
+client = Client(PythonStdioTransport("server.py"))
 tools = client.describe_tools()
 
 # Gemini setup
