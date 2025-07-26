@@ -1,13 +1,10 @@
 # client.py
-
+import asyncio
 from fastmcp import Client
 from fastmcp.client.transports import PythonStdioTransport
 
 # Path to the MCP server script
-SERVER_PATH = "server.py"  # Make sure this file exists and contains your screen_cv tool
-
-# Start a connection to the server
-client = Client(PythonStdioTransport(SERVER_PATH))
+SERVER_PATH = "server.py"  # Path to your MCP server that defines screen_cv
 
 # Sample CV/resume text
 cv_text = """
@@ -16,15 +13,21 @@ She has designed REST APIs, worked with Docker and Kubernetes, and led agile tea
 Strong communicator and team collaborator.
 """
 
-# Optional: specify a job title
 job_title = "Backend Developer"
+client = Client(PythonStdioTransport(SERVER_PATH))
 
-# Call the tool
-result = client.call_tool("screen_cv", {
-    "cv_text": cv_text,
-    "job_title": job_title
-})
+async def main():
+    async with client:
+        result = await client.call_tool("screen_cv", {
+            "cv_text": cv_text,
+            "job_title": job_title
+        })
 
-# Print the result
-print("=== CV Screening Result ===")
-print(result)
+        print(f"\n=== MCP Tool Result ===")
+        print(result.data)
+
+        print(f"\n--- Debug Info ---")
+        print(f"Status: {'✅ Success' if not result.is_error else '❌ Error'}")
+        print(f"Response type: {type(result.data)}")
+
+asyncio.run(main())

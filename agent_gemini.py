@@ -2,53 +2,34 @@
 
 import os
 import google.generativeai as genai
-from fastmcp import Client
-from fastmcp.client.transports import PythonStdioTransport
 from dotenv import load_dotenv
-import json
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Connect to MCP server
-client = Client(PythonStdioTransport("server.py"))
-tools = client.describe_tools()
+models = genai.list_models()
+for m in models:
+    print(f"{m.name} | {m.supported_generation_methods}")
 
-# Gemini setup
-model = genai.GenerativeModel(
-    model_name="gemini-pro",
-    tools=tools
-)
 
-# Sample resume
-resume_text = """
-John Doe is a backend developer with 5 years of experience in Python and SQL.
-He has worked on microservices, Docker deployments, and team-based agile environments.
-"""
+# Set up Gemini model with no external tools needed
+model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
 
-job_title = "Backend Developer"
+def call_gemini_for_cv_analysis(cv_text: str, job_title: str = "Backend Developer") -> str:
+    """
+    Calls Gemini to analyze the resume text for a given job role.
+    Returns Gemini's natural language evaluation result.
+    """
+    prompt = f"""
+You are a hiring assistant. Given the following resume, evaluate how well it fits the job title "{job_title}".
+Mention strengths, missing skills, and your overall impression.
 
-# Create chat session with Gemini
-chat = model.start_chat(history=[])
+Resume:
+{cv_text}
+    """
 
-response = chat.send_message(
-    content=[
-        {
-            "role": "user",
-            "parts": [
-                f"Please analyze this resume for the role of {job_title}.",
-                {"function_call": {
-                    "name": "screen_cv",
-                    "args": {
-                        "cv_text": resume_text,
-                        "job_title": job_title
-                    }
-                }}
-            ]
-        }
-    ]
-)
-
-# Handle response
-print("=== Gemini Agent Response ===")
-print(response.text)
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Gemini call failed: {e}"
